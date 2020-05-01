@@ -1,4 +1,5 @@
 import requests
+import json
 
 class Message:
     """This class will representate the received message
@@ -12,6 +13,8 @@ class Message:
 
         if self.check_connection(token):
             self._json = self.access_api(token).json()
+            self._json['decifrado'] = self.decipher()
+            self.write_json()
         else:
             raise ValueError('Something went wrong')
       
@@ -49,5 +52,36 @@ class Message:
         else:
             raise ValueError('Invalid Token or connection!!!')
 
+    def write_json(self):
+        """Write the file in a json format"""
 
+        with open('answer.json', 'w') as file:
+            json.dump(self._json, file)
 
+    @staticmethod
+    def load_json():
+        """Read a json file"""
+
+        with open('answer.json', 'r') as file:
+            return json.load(file)
+
+    def decipher(self):
+        """Decipher the received message"""
+
+        decipher_number = self._json['numero_casas']
+        encrypted = self._json['cifrado'].split()
+        decipher_message = self._json['decifrado']
+
+        alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+        for word in encrypted:
+            new_word = ''
+            for letter in word:
+                
+                letter_position = alphabet.find(letter)
+                new_letter_position =( letter_position - decipher_number)%26
+                new_word = f'{new_word}{alphabet[new_letter_position]}'
+
+            decipher_message = f"{decipher_message} {new_word}"
+
+        return decipher_message
